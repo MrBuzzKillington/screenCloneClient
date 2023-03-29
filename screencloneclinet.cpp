@@ -6,6 +6,9 @@ ScreenCloneClinet::ScreenCloneClinet(QWidget *parent)
     , ui(new Ui::ScreenCloneClinet)
 {
     ui->setupUi(this);
+
+
+    //imageViewObj_
 }
 
 ScreenCloneClinet::~ScreenCloneClinet()

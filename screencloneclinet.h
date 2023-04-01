@@ -2,6 +2,7 @@
 #define SCREENCLONECLINET_H
 
 #include <QMainWindow>
+#include "serverclientmodule.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ScreenCloneClinet; }
@@ -17,5 +18,6 @@ public:
 
 private:
     Ui::ScreenCloneClinet *ui;
+    std::unique_ptr<serverClientModule> netModPtr_;
 };
 #endif // SCREENCLONECLINET_H

@@ -19,6 +19,7 @@ set(PROJECT_SOURCES
         screencloneclinet.ui
         serverclientmodule.h
         serverclientmodule.cpp
+
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

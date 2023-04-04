@@ -2,38 +2,41 @@
 #define SERVERCLIENTMODULE_H
 
 #include "qimage.h"
-#include<QtNetwork/QUdpSocket>
-#include<QtNetwork/QHostAddress>
-#include<QtNetwork/QLocalSocket>
 #include <QObject>
+#include <QTcpSocket>
+#include <QDebug>
+#include <QAbstractSocket>
 
 
 class serverClientModule : public QObject
 {
     Q_OBJECT
 public:
-    serverClientModule(QHostAddress addr, int port);
+    explicit serverClientModule(QObject *parent = 0,QHostAddress addr=QHostAddress::LocalHost, int port=1234);
     ~serverClientModule();
+    void connectToServer();
     QImage getLastImage();
 
+protected:
+
 private:
-    std::unique_ptr<QUdpSocket> socketPtr_;
-    int imageSeq_;
-    QHostAddress clientAddr_;
-    int clientPort_;
-    QByteArray dataPackets_;
-
-    std::vector<QImage>images_;
-
     void processImageData();
 
+    int imageSeq_;   
+    std::unique_ptr<QTcpSocket> socket_;
+
+    QByteArray dataPackets_;
+    std::vector<QImage>images_;
+    QHostAddress addr_;
+    int port_;
+    bool connected_;
 
 
 private slots:
-  void processEnetMessage();
+    void readyRead();
 
 signals:
-  void imageAvalable();
+    void imageAvalable();
 };
 
 #endif // SERVERCLIENTMODULE_H

@@ -5,17 +5,16 @@
 ScreenCloneClinet::ScreenCloneClinet(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::ScreenCloneClinet),
-    netModPtr_(),
+    clientPtr_(),
     rcvdImage_()
 {
     ui->setupUi(this);
 
     //Create the network connection class
-    netModPtr_.reset(new serverClientModule(QHostAddress::LocalHost, 1234));
+    clientPtr_.reset( new serverClientModule( parent,QHostAddress::LocalHost, 1234 ) );
+    connect( clientPtr_.get(), &serverClientModule::imageAvalable, this, &ScreenCloneClinet::processNewImage);
 
-    connect( netModPtr_.get(), &serverClientModule::imageAvalable, this, &ScreenCloneClinet::processNewImage);
-
-    //imageViewObj_
+    clientPtr_->connectToServer(); //data will start flowing
 }
 
 ScreenCloneClinet::~ScreenCloneClinet()
@@ -26,7 +25,7 @@ ScreenCloneClinet::~ScreenCloneClinet()
 void  ScreenCloneClinet::processNewImage()
 {
     //qDebug() << "process new image";
-    QImage lastImage = netModPtr_->getLastImage();
+    QImage lastImage = clientPtr_->getLastImage();
 
 
     if (lastImage.width() < 20)
@@ -50,7 +49,5 @@ void  ScreenCloneClinet::processNewImage()
     viewSize.setHeight(lastImage.height());
     ui->imageViewObj_->setGeometry(viewSize);
     ui->imageViewObj_->setScene(scene);
-
-
 
 }

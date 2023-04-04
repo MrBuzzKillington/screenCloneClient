@@ -19,7 +19,7 @@ public:
 
 private:
     Ui::ScreenCloneClinet *ui;
-    std::unique_ptr<serverClientModule> netModPtr_;
+    std::unique_ptr<serverClientModule> clientPtr_;
     QImage rcvdImage_;
 
 private slots:

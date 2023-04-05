@@ -125,9 +125,6 @@ void serverClientModule::processImageData()
     }
 
 
-
-
-
 //    sBuff >> newImage;
 
 //    if (key == 0x5c5c)

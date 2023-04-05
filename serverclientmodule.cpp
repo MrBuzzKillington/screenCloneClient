@@ -86,6 +86,8 @@ void serverClientModule::processImageData()
   //Generate the message
     QDataStream sBuff(&dataPackets_, QIODevice::ReadOnly);
 
+    qDebug() << "DataPAcketSize:" << dataPackets_.size();
+
    // buf.clear();
   //  sBuff << (quint16) 0x5C5C;
    // sBuff << (qint32) imageSeq_;
@@ -95,22 +97,47 @@ void serverClientModule::processImageData()
     quint16 key;
     quint32 imageSeq;
     quint32 payloadSize;
-    QImage newImage;
+    QByteArray tempImageBuff;
+
 
     sBuff >> key;
     sBuff >> imageSeq;
     sBuff >> payloadSize;
+    sBuff >> tempImageBuff;
 
-    sBuff >> newImage;
+    qDebug() << "key:" << key << " seq:" << imageSeq << " payload:" << payloadSize;
 
-    if (key == 0x5c5c)
+
+    bool flag;
+    //QByteArray ba;
+    QDataStream in(tempImageBuff);
+    qDebug() << " full size:" << tempImageBuff.size();
+    QImage newImage;
+    in >> newImage >> flag;
+
+    if(flag)
     {
         images_.push_back(newImage);
         emit imageAvalable();
-        qDebug() << "numImages: " << images_.size();
+       //qDebug() << "numImages: " << images_.size();
     } else {
         qDebug() << "Wrong data";
     }
+
+
+
+
+
+//    sBuff >> newImage;
+
+//    if (key == 0x5c5c)
+//    {
+//        images_.push_back(newImage);
+//        emit imageAvalable();
+//        qDebug() << "numImages: " << images_.size();
+//    } else {
+//        qDebug() << "Wrong data";
+//    }
     qDebug() << "h:" << newImage.height() << " w:" << newImage.width();
 }
 
@@ -135,7 +162,7 @@ void serverClientModule::processImageData()
 
  void serverClientModule::readyRead()
  {
-     qDebug() << "got message";
+     qDebug() << "got message" << socket_->size();
      dataPackets_.clear();
      dataPackets_.append(socket_->readAll());
      processImageData();

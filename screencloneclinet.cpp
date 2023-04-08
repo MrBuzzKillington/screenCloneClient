@@ -2,6 +2,7 @@
 #include "./ui_screencloneclinet.h"
 
 
+
 ScreenCloneClinet::ScreenCloneClinet(QWidget *parent, QHostAddress addr):
     QMainWindow(parent),
     ui(new Ui::ScreenCloneClinet),
@@ -17,6 +18,7 @@ ScreenCloneClinet::ScreenCloneClinet(QWidget *parent, QHostAddress addr):
 
     clientPtr_->connectToServer(); //data will start flowing
     this->move(0,0);
+
 }
 
 ScreenCloneClinet::~ScreenCloneClinet()

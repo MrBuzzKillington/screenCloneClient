@@ -14,8 +14,8 @@ class serverClientModule : public QObject
 public:
     explicit serverClientModule(QObject *parent = 0,QHostAddress addr=QHostAddress::LocalHost, int port=1234);
     ~serverClientModule();
-    void connectToServer();
     QImage getLastImage();
+    void connectToServer();
 
 protected:
 
@@ -30,10 +30,13 @@ private:
     QHostAddress addr_;
     int port_;
     bool connected_;
+    std::unique_ptr<QTimer> sendTimer_;
 
 
 private slots:
     void readyRead();
+    void remoteDisconnected();
+    void tryReconnect();
 
 signals:
     void imageAvalable();

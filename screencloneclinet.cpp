@@ -2,7 +2,7 @@
 #include "./ui_screencloneclinet.h"
 
 
-ScreenCloneClinet::ScreenCloneClinet(QWidget *parent):
+ScreenCloneClinet::ScreenCloneClinet(QWidget *parent, QHostAddress addr):
     QMainWindow(parent),
     ui(new Ui::ScreenCloneClinet),
     clientPtr_(),
@@ -11,10 +11,12 @@ ScreenCloneClinet::ScreenCloneClinet(QWidget *parent):
     ui->setupUi(this);
 
     //Create the network connection class
-    clientPtr_.reset( new serverClientModule( parent,QHostAddress::LocalHost, 1234 ) );
+    qDebug() << "connecting to: " << addr.toString();
+    clientPtr_.reset( new serverClientModule( parent, addr, 1234 ) );
     connect( clientPtr_.get(), &serverClientModule::imageAvalable, this, &ScreenCloneClinet::processNewImage);
 
     clientPtr_->connectToServer(); //data will start flowing
+    this->move(0,0);
 }
 
 ScreenCloneClinet::~ScreenCloneClinet()
@@ -44,10 +46,11 @@ void  ScreenCloneClinet::processNewImage()
     scene->setSceneRect(lastImage.rect());
 
     //Scal the size of the imageview widget
+
     QRect viewSize = ui->imageViewObj_->geometry();
     viewSize.setWidth(lastImage.width());
     viewSize.setHeight(lastImage.height());
-    ui->imageViewObj_->setGeometry(viewSize);
+    ui->imageViewObj_->setGeometry(0,0,viewSize.width(),viewSize.height());
     ui->imageViewObj_->setScene(scene);
 
 }

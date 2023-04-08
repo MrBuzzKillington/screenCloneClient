@@ -3,6 +3,7 @@
 #include<QNetworkDatagram>
 #include<QImage>
 #include <QPixmap>
+#include <QTimer>
 
 
 serverClientModule::serverClientModule(QObject *parent,QHostAddress addr, int port):
@@ -13,7 +14,8 @@ serverClientModule::serverClientModule(QObject *parent,QHostAddress addr, int po
     socket_(),
     addr_(),
     port_(),
-    connected_(false)
+    connected_(false),
+    sendTimer_()
 {
     addr_ = addr;
     port_ = port;
@@ -22,6 +24,12 @@ serverClientModule::serverClientModule(QObject *parent,QHostAddress addr, int po
 
     socket_.reset(new QTcpSocket(this));
     QObject::connect(socket_.get(), &QTcpSocket::readyRead, this, &serverClientModule::readyRead);
+    QObject::connect(socket_.get(), &QTcpSocket::disconnected, this, &serverClientModule::remoteDisconnected);
+
+    sendTimer_.reset(new QTimer(this));
+    connect(sendTimer_.get(), &QTimer::timeout, this, &serverClientModule::tryReconnect);
+
+
 
 //    QObject::connect(socketPtr_.get(), &QUdpSocket::readyRead, this, &serverClientModule::processEnetMessage);
 
@@ -45,39 +53,17 @@ void serverClientModule::connectToServer()
         {
             qDebug() << "Connected!";
             connected_ = true;
+            sendTimer_->stop();
         }
         else
         {
             qDebug() << "Not connected!";
             connected_ = false;
+            sendTimer_->start( 500 );
         }
     }
 
 }
-
-//void serverClientModule::processEnetMessage()
-//{
-//    QByteArray tempQBA;
-//https://www.youtube.com/watch?v=Si6Gz8jQtGQ
-//    while (socketPtr_->hasPendingDatagrams()) {
-//           QNetworkDatagram datagram = socketPtr_->receiveDatagram();
-//           tempQBA.clear();
-//           tempQBA.append(datagram.data());
-//           qDebug() << "got message " << tempQBA.size();
-//           if (tempQBA.at(0) == 0) //first
-//           {
-//               dataPackets_.clear(); //This should flush the data
-//           }
-//           //Add the data to the datapacket;
-//           dataPackets_.append( tempQBA );
-//           if (tempQBA.at(0)== 2) //End
-//           {
-//               processImageData();
-//           }
-
-//       }
-//}
-
 
 //q8(type),Q32(seq),q32(frag),q32(payloadsize),qba(image payload)
 void serverClientModule::processImageData()
@@ -86,32 +72,33 @@ void serverClientModule::processImageData()
   //Generate the message
     QDataStream sBuff(&dataPackets_, QIODevice::ReadOnly);
 
-    qDebug() << "DataPAcketSize:" << dataPackets_.size();
-
-   // buf.clear();
-  //  sBuff << (quint16) 0x5C5C;
-   // sBuff << (qint32) imageSeq_;
-   // sBuff << (qint32)payloadSize;
-   // sBuff << imageQBA;//.first(payloadSize);
 
     quint16 key;
     quint32 imageSeq;
     quint32 payloadSize;
     QByteArray tempImageBuff;
 
-
     sBuff >> key;
     sBuff >> imageSeq;
     sBuff >> payloadSize;
+    //need to check if the full message was received or not
+    // qDebug() << "byteArrayLEn:" << dataPackets_.size() << "key:" << key << " seq:" << imageSeq << " payload:" << payloadSize;
+    if (dataPackets_.size() < (payloadSize + 10) ) //key+image_payload
+    {
+        //qDebug() << "not full fragment";
+        return;
+    }
     sBuff >> tempImageBuff;
 
-    qDebug() << "key:" << key << " seq:" << imageSeq << " payload:" << payloadSize;
+    dataPackets_.clear();
+
+
 
 
     bool flag;
     //QByteArray ba;
     QDataStream in(tempImageBuff);
-    qDebug() << " full size:" << tempImageBuff.size();
+   // qDebug() << " full size:" << tempImageBuff.size();
     QImage newImage;
     in >> newImage >> flag;
 
@@ -125,17 +112,9 @@ void serverClientModule::processImageData()
     }
 
 
-//    sBuff >> newImage;
 
-//    if (key == 0x5c5c)
-//    {
-//        images_.push_back(newImage);
-//        emit imageAvalable();
-//        qDebug() << "numImages: " << images_.size();
-//    } else {
-//        qDebug() << "Wrong data";
 //    }
-    qDebug() << "h:" << newImage.height() << " w:" << newImage.width();
+   //qDebug() << "h:" << newImage.height() << " w:" << newImage.width();
 }
 
 
@@ -159,8 +138,29 @@ void serverClientModule::processImageData()
 
  void serverClientModule::readyRead()
  {
-     qDebug() << "got message" << socket_->size();
-     dataPackets_.clear();
+     //qDebug() << "got message" << socket_->size();
+     //dataPackets_.clear();
      dataPackets_.append(socket_->readAll());
      processImageData();
  }
+
+
+ void serverClientModule::remoteDisconnected()
+ {
+     qDebug() << "got remote dissconnect";
+     connected_ = false;
+     sendTimer_->start( 500 );
+ }
+
+
+ void serverClientModule::tryReconnect()
+ {
+     if (connected_ == false)
+     {
+         qDebug() << "Try connect again";
+         connectToServer();
+     }
+ }
+
+
+

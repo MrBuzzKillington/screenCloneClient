@@ -14,7 +14,7 @@ class ScreenCloneClinet : public QMainWindow
     Q_OBJECT
 
 public:
-    ScreenCloneClinet(QWidget *parent = nullptr);
+    ScreenCloneClinet(QWidget *parent = nullptr, QHostAddress addr=QHostAddress::LocalHost);
     ~ScreenCloneClinet();
 
 private:

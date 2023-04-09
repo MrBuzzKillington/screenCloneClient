@@ -45,7 +45,7 @@ void  ScreenCloneClinet::processNewImage()
         return;
     }
     //Resize the window
-    this->resize( lastImage.width()+20, lastImage.height()+20 );
+    //this->resize( lastImage.width()+20, lastImage.height()+20 );
 
 
 

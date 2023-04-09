@@ -131,6 +131,7 @@ void serverClientModule::processImageData()
 
      QImage theImage = images_.back();
      images_.clear();
+     //theImage = theImage.scaled(theImage.width()*2, theImage.height()*2,Qt::KeepAspectRatio);
      return theImage;
 
  }

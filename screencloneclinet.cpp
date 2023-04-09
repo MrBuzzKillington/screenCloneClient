@@ -1,13 +1,14 @@
 #include "screencloneclinet.h"
 #include "./ui_screencloneclinet.h"
-
+#include <QShortcut>
 
 
 ScreenCloneClinet::ScreenCloneClinet(QWidget *parent, QHostAddress addr):
     QMainWindow(parent),
     ui(new Ui::ScreenCloneClinet),
     clientPtr_(),
-    rcvdImage_()
+    rcvdImage_(),
+    scene_()
 {
     ui->setupUi(this);
 
@@ -19,6 +20,11 @@ ScreenCloneClinet::ScreenCloneClinet(QWidget *parent, QHostAddress addr):
     clientPtr_->connectToServer(); //data will start flowing
     this->move(0,0);
 
+
+    QShortcut * shortcut = new QShortcut(QKeySequence(Qt::Key_Escape),this,SLOT(escapeEvent()));
+    shortcut->setAutoRepeat(false);
+
+
 }
 
 ScreenCloneClinet::~ScreenCloneClinet()
@@ -28,6 +34,7 @@ ScreenCloneClinet::~ScreenCloneClinet()
 
 void  ScreenCloneClinet::processNewImage()
 {
+
     //qDebug() << "process new image";
     QImage lastImage = clientPtr_->getLastImage();
 
@@ -42,10 +49,10 @@ void  ScreenCloneClinet::processNewImage()
 
 
 
-    QGraphicsScene *scene;
-    scene = new QGraphicsScene(this);
-    scene->addPixmap( QPixmap::fromImage( lastImage ) );
-    scene->setSceneRect(lastImage.rect());
+    //QGraphicsScene *scene;
+    scene_.reset(new QGraphicsScene(this));
+    scene_->addPixmap( QPixmap::fromImage( lastImage ) );
+    scene_->setSceneRect(lastImage.rect());
 
     //Scal the size of the imageview widget
 
@@ -53,6 +60,13 @@ void  ScreenCloneClinet::processNewImage()
     viewSize.setWidth(lastImage.width());
     viewSize.setHeight(lastImage.height());
     ui->imageViewObj_->setGeometry(0,0,viewSize.width(),viewSize.height());
-    ui->imageViewObj_->setScene(scene);
+    ui->imageViewObj_->setScene(scene_.get());
 
+}
+
+
+void  ScreenCloneClinet::escapeEvent()
+{
+    qDebug() << "Escape key";
+    this->close();
 }

@@ -4,6 +4,7 @@
 #include<QImage>
 #include <QPixmap>
 #include <QTimer>
+#include <QBuffer>
 
 
 serverClientModule::serverClientModule(QObject *parent,QHostAddress addr, int port):
@@ -28,10 +29,6 @@ serverClientModule::serverClientModule(QObject *parent,QHostAddress addr, int po
 
     sendTimer_.reset(new QTimer(this));
     connect(sendTimer_.get(), &QTimer::timeout, this, &serverClientModule::tryReconnect);
-
-
-
-//    QObject::connect(socketPtr_.get(), &QUdpSocket::readyRead, this, &serverClientModule::processEnetMessage);
 
 }
 
@@ -93,14 +90,19 @@ void serverClientModule::processImageData()
     dataPackets_.clear();
 
 
+    QBuffer buffer(&tempImageBuff);
+    buffer.open(QIODevice::ReadOnly);
+    QImage newImage;
+    newImage.load(&buffer, "BMP"); // writes image into ba in PNG format
+    images_.push_back(newImage);
+    emit imageAvalable();
 
-
-    bool flag;
+ /*   bool flag = true;
     //QByteArray ba;
     QDataStream in(tempImageBuff);
    // qDebug() << " full size:" << tempImageBuff.size();
     QImage newImage;
-    in >> newImage >> flag;
+    in >> newImage;// >> flag;
 
     if(flag)
     {
@@ -111,10 +113,8 @@ void serverClientModule::processImageData()
         qDebug() << "Wrong data";
     }
 
+*/
 
-
-//    }
-   //qDebug() << "h:" << newImage.height() << " w:" << newImage.width();
 }
 
 
